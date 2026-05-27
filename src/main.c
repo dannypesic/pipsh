@@ -3,12 +3,13 @@
 #include <sys/wait.h>
 //#include <fcntl.h>
 //#include <signal.h>
-#include <string.h>
+//#include <string.h>
 #include <stdlib.h>
 
 #include "parser.h"
 #include "builtins.h"
 #include "prefix.h"
+#include "magic_nums.h"
 
 int main() {
     setenv("PATH", "/bin:/usr/bin:/sbin:/usr/sbin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/Users/danny/.local/bin:/Users/danny/.cargo/bin:/Users/danny/.dotnet/tools", 1);
@@ -20,7 +21,7 @@ int main() {
 
     while (1) {
 
-        char *argvec[64];
+        char *argvec[ARGVEC_LENGTH];
         char* line = parse(argvec);
         if (line != NULL) {
             if (run_builtins(argvec, &prefix)) { break; }

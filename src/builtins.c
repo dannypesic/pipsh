@@ -1,9 +1,10 @@
-
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <string.h>
 #include <stdlib.h>
+
+#include "magic_nums.h"
 #include "prefix.h"
 
 int run_builtins(char ** argvec, Prefix * prefix) {
@@ -15,7 +16,7 @@ int run_builtins(char ** argvec, Prefix * prefix) {
     if (strcmp(argvec[0], "cd") == 0) {
 
         chdir(argvec[1]);
-        char dirbuf[256];
+        char dirbuf[PATH_LENGTH];
         getcwd(dirbuf, sizeof(dirbuf));
         setenv("PWD", dirbuf, 1);
         update_dir(prefix, dirbuf);

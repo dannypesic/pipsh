@@ -1,9 +1,9 @@
-
 #include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "magic_nums.h"
 
 typedef struct {
     char * username;
@@ -19,7 +19,7 @@ int new_prefix(Prefix * result) {
         return 1;
     }
 
-    char hostname[64];
+    char hostname[HOSTNAME_LENGTH];
     if (gethostname(hostname, sizeof(hostname)) == 0) {
         char *dot = strchr(hostname, '.');
         if (dot)
@@ -28,7 +28,7 @@ int new_prefix(Prefix * result) {
         return 1;
     }
 
-    char dirbuf[256];
+    char dirbuf[PATH_LENGTH];
     getcwd(dirbuf, sizeof(dirbuf));
     char *last_slash = strrchr(dirbuf, '/');
     char* curdir = last_slash ? last_slash + 1 : (char *)dirbuf;
