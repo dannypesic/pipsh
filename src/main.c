@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#include <fcntl.h>
-#include <signal.h>
+//#include <fcntl.h>
+//#include <signal.h>
 #include <string.h>
 #include <stdlib.h>
 #include <pwd.h>
+
+#include "parser.h"
+#include "builtins.h"
 
 int main() {
     setenv("PATH", "/bin:/usr/bin:/sbin:/usr/sbin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/Users/danny/.local/bin:/Users/danny/.cargo/bin:/Users/danny/.dotnet/tools", 1);
@@ -24,40 +27,18 @@ int main() {
         return 1;
     }
 
-    int should_run = 1;
     printf("%s@%s &: ", pw->pw_name, hostname);
-    while (should_run) {
-        char *line = NULL;
-        size_t size = 0;
+    while (1) {
 
-        const ssize_t len = getline(&line, &size, stdin);
+        char *argvec[64];
+        char* line = parse(argvec);
+        if (line != NULL) {
 
-        if (len == -1) {
-            free(line);
-        } else {
-            char *argvec[32];
-            int argnum = 0;
-            char *tok = strtok(line, " \n");
-            while (tok != NULL) {
-                argvec[argnum++] = tok;
-                tok = strtok(NULL, " \n");
-            }
-            argvec[argnum] = NULL;
+            if (run_builtins(argvec)) { break; }
+            printf("%s@%s &: ", pw->pw_name, hostname);
 
-            //builtins
-            if (strcmp(argvec[0], "exit") == 0) {
-                should_run = 0;
-            } else {
-                char * const *args = (const char * const *)argvec;
-                pid_t pid = fork();
-                if (pid == 0) {
-                    execvp(args[0],args);
-                }
-                wait(NULL);
-                printf("%s@%s &: ", pw->pw_name, hostname);
-            }
-            free(line);
         }
+        free(line);
     }
     return 0;
 }

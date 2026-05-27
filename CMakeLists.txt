@@ -3,4 +3,6 @@ project(pipsh C)
 
 set(CMAKE_C_STANDARD 17)
 
-add_executable(pipsh src/main.c)
+add_executable(pipsh src/main.c src/parser.c src/builtins.c)
+
+target_include_directories(pipsh PRIVATE include)

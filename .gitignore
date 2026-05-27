@@ -1,2 +1,4 @@
 .idea
 ref_h
+cmake-build-debug
+.DS_Store
