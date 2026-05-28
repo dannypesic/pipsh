@@ -25,9 +25,9 @@ int exec_cmd(char ** argvec, Prefix * prefix) {
     } else {
         pid_t pid = fork();
         if (pid == 0) {
-            if (execvp(argvec[0],argvec) != 0) {
-                printf("%s: command not found\n", argvec[0]);
-            }
+            execvp(argvec[0],argvec);
+            printf("%s: command not found\n", argvec[0]);
+            exit(127);
         }
     }
     return 0;
