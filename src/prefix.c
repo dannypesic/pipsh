@@ -5,11 +5,7 @@
 #include <unistd.h>
 #include "magic_nums.h"
 
-typedef struct {
-    char * username;
-    char * hostname;
-    char * cdir;
-} Prefix;
+#include "prefix.h"
 
 int new_prefix(Prefix * result) {
 
