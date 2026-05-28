@@ -36,18 +36,16 @@ int exec_cmd(char ** argvec, Prefix * prefix) {
 int run_builtins(Command * cmds, Prefix * prefix) {
     int forks = 0;
     int cmd_idx = 0;
+    int rval = 0;
     while (cmds[cmd_idx].next != NULL) {
 
-        if (exec_cmd(cmds[cmd_idx].argv, prefix) != 0) { return 1;}
-
+        if (exec_cmd(cmds[cmd_idx].argv, prefix) != 0) { rval = 1; break;}
         forks++;
         cmd_idx++;
     }
-    if (exec_cmd(cmds[cmd_idx].argv, prefix) != 0) { return 1; }
+    if (exec_cmd(cmds[cmd_idx].argv, prefix) != 0) { rval = 1; }
     forks++;
-
     while (forks--) wait(NULL);
 
-
-    return 0;
+    return rval;
 }
