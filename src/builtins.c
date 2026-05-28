@@ -6,9 +6,10 @@
 
 #include "magic_nums.h"
 #include "prefix.h"
+#include "pipe_list.h"
 
-int run_builtins(char ** argvec, Prefix * prefix) {
 
+int exec_cmd(char ** argvec, Prefix * prefix) {
     if (strcmp(argvec[0], "exit") == 0) {
         return 1;
     }
@@ -24,10 +25,29 @@ int run_builtins(char ** argvec, Prefix * prefix) {
     } else {
         pid_t pid = fork();
         if (pid == 0) {
-            execvp(argvec[0],argvec);
+            if (execvp(argvec[0],argvec) != 0) {
+                printf("%s: command not found\n", argvec[0]);
+            }
         }
-        wait(NULL);
     }
+    return 0;
+}
+
+int run_builtins(Command * cmds, Prefix * prefix) {
+    int forks = 0;
+    int cmd_idx = 0;
+    while (cmds[cmd_idx].next != NULL) {
+
+        if (exec_cmd(cmds[cmd_idx].argv, prefix) != 0) { return 1;}
+
+        forks++;
+        cmd_idx++;
+    }
+    if (exec_cmd(cmds[cmd_idx].argv, prefix) != 0) { return 1; }
+    forks++;
+
+    while (forks--) wait(NULL);
+
 
     return 0;
 }

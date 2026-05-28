@@ -4,5 +4,6 @@
 #define ARGVEC_LENGTH 64
 #define PATH_LENGTH 256
 #define HOSTNAME_LENGTH 64
+#define MAX_COMMANDS 64
 
 #endif //PIPSH_MAGIC_NUMS_H

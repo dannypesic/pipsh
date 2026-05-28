@@ -2,12 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "pipe_list.h"
+
 typedef enum {
-    Default,
-    DoubleQuotes,
+    DEFAULT,
+    DOUBLE_QUOTES,
 } Mode;
 
-char* parse(char **argvec) {
+
+char* parse(Command* cmds, char ** argv_pool) {
     char *line = NULL;
     size_t size = 0;
 
@@ -18,45 +21,60 @@ char* parse(char **argvec) {
         return NULL;
     }
 
-    // set a home pointer and iter_ptr+write_ptr (starts at line)
-    // set a argnum = 0
-    // if the iter pointer doesn't point to NULL:
-    //   switch mode DEFAULT:
-    //     if char " -> enter dq mode and iter_ptr++
-    //     elif char ' ' || \n -> {*write_ptr = \0, write_ptr++, iter_ptr++,
-    //     argvec[argnum]=home, home=write_ptr and argnum++}
-    //     else -> *write_ptr++ = *iter_ptr++
-    //   switch mode DoubleQuotes:
-    //     if char " -> enter default mode and iter++
-    //     else -> *write_ptr++ = *iter_ptr++
-    // else: *write_ptr = \0, write_ptr++,
-    //     argvec[argnum]=home argvec[argnum++] = NULL && return (note, line needs to be freed after!)
 
     char *home = line, *write = line, *iter = line;
     int argnum = 0;
+    int cmd_count = 0;
+    int cmd_idx = 0;
 
-    Mode mode = Default;
+
+    Mode mode = DEFAULT;
 
     while (*iter != '\0') {
         switch (mode) {
-            case Default:
+            case DEFAULT:
                 if (*iter == '"') {
-                    mode = DoubleQuotes;
+                    mode = DOUBLE_QUOTES;
                     iter++;
                 } else if (*iter == ' ' || *iter == '\n') {
                     *write = '\0';
                     write++;
                     iter++;
-                    argvec[argnum] = home;
+                    argv_pool[argnum] = home;
                     home = write;
                     argnum++;
+                } else if (*iter == '|') {
+                    if (write > home) {
+                        *write = '\0';
+                        write++;
+                        argv_pool[argnum] = home;
+                        argnum++;
+                    }
+                    cmds[cmd_count] = (Command){
+                        .argv = &argv_pool[cmd_idx],
+                        .redirect_in = NULL,
+                        .redirect_out = NULL,
+                        .redirect_app = NULL,
+                        .next = NULL
+                    };
+                    if (cmd_count != 0) {
+                        cmds[cmd_count-1].next = &cmds[cmd_count];
+                    }
+                    cmd_count++;
+                    iter++;
+                    while (*iter == ' ') iter++;
+                    home = write;
+                    argv_pool[argnum] = NULL;
+                    argnum++;
+                    cmd_idx = argnum;
+
                 } else {
                     *write++ = *iter++;
                 }
                 break;
-            case DoubleQuotes:
+            case DOUBLE_QUOTES:
                 if (*iter == '"') {
-                    mode = Default;
+                    mode = DEFAULT;
                     iter++;
                 } else {
                     *write++ = *iter++;
@@ -65,16 +83,22 @@ char* parse(char **argvec) {
         }
     }
     *write = '\0';
-    argvec[argnum] = home;
-    argvec[argnum++] = NULL;
+    if (write > home) {
+        argv_pool[argnum] = home;
+        argnum++;
+    }
+    argv_pool[argnum] = NULL;
+    cmds[cmd_count] = (Command){
+        .argv = &argv_pool[cmd_idx],
+        .redirect_in = NULL,
+        .redirect_out = NULL,
+        .redirect_app = NULL,
+        .next = NULL
+    };
+    if (cmd_count != 0) {
+        cmds[cmd_count-1].next = &cmds[cmd_count];
+    }
 
-    // int argnum = 0;
-    // char *tok = strtok(line, " \n");
-    // while (tok != NULL) {
-    //     argvec[argnum++] = tok;
-    //     tok = strtok(NULL, " \n");
-    // }
-    // argvec[argnum] = NULL;
 
     return line;
 }

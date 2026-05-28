@@ -10,21 +10,20 @@
 #include "builtins.h"
 #include "prefix.h"
 #include "magic_nums.h"
+#include "pipe_list.h"
 
 int main() {
-    setenv("PATH", "/bin:/usr/bin:/sbin:/usr/sbin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/Users/danny/.local/bin:/Users/danny/.cargo/bin:/Users/danny/.dotnet/tools", 1);
-
     Prefix prefix;
     new_prefix(&prefix);
     if (new_prefix(&prefix) != 0) {return 1;}
     print_prefix(&prefix);
 
     while (1) {
-
-        char *argvec[ARGVEC_LENGTH];    
-        char* line = parse(argvec);
+        Command cmds[MAX_COMMANDS];
+        char* argv_pool[ARGVEC_LENGTH];
+        char* line = parse(cmds, argv_pool);
         if (line != NULL) {
-            if (run_builtins(argvec, &prefix)) { break; }
+            if (run_builtins(cmds, &prefix)) { break; }
             print_prefix(&prefix);
         }
         free(line);
