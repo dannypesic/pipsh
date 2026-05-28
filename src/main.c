@@ -21,7 +21,7 @@ int main() {
 
     while (1) {
 
-        char *argvec[ARGVEC_LENGTH];
+        char *argvec[ARGVEC_LENGTH];    
         char* line = parse(argvec);
         if (line != NULL) {
             if (run_builtins(argvec, &prefix)) { break; }
