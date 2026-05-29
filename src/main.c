@@ -1,9 +1,9 @@
 #include <stdio.h>
-//#include <unistd.h>
+#include <unistd.h>
 #include <sys/wait.h>
-//#include <fcntl.h>
-//#include <signal.h>
-//#include <string.h>
+#include <fcntl.h>
+#include <signal.h>
+#include <string.h>
 #include <stdlib.h>
 
 #include "parser.h"
