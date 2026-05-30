@@ -18,7 +18,10 @@ typedef enum {
 } RedirectMode;
 
 
-int exec_cmd(char ** argvec, Prefix * prefix) {
+int exec_cmd(Command * cmd, Prefix * prefix, int front_read, int front_write) {
+    char ** argvec = cmd->argv;
+    int back_read = cmd->back_read;
+
     if (strcmp(argvec[0], "exit") == 0) {
         return 1;
     }
@@ -84,6 +87,15 @@ int exec_cmd(char ** argvec, Prefix * prefix) {
             case NONE:
                 break;
         }
+        if (back_read != -1) {
+            dup2(back_read, STDIN_FILENO);
+            close(back_read);
+        }
+
+        if (front_write != -1 && front_read != -1) {
+            dup2(front_write, STDOUT_FILENO);
+            close(front_read); close(front_write);
+        }
 
         execvp(argvec[0],argvec);
         printf("%s: command not found\n", argvec[0]);
@@ -99,14 +111,31 @@ int run_builtins(Command * cmds, Prefix * prefix) {
     int rval = 0;
     while (cmds[cmd_idx].next != NULL) {
 
-        const int cmd_rval = exec_cmd(cmds[cmd_idx].argv, prefix);
-        if (cmd_rval == 0) { forks++;}
+        int front_pipe[2];
+        if (pipe(front_pipe) == -1) {
+            perror("pipe");
+            rval = 1;
+            break;
+        }
+
+        const int cmd_rval = exec_cmd(&cmds[cmd_idx], prefix, front_pipe[0], front_pipe[1]);
+        if (cmd_rval == 0) {
+            forks++;
+            cmds[cmd_idx + 1].back_read = front_pipe[0];
+            close(front_pipe[1]);
+        }
         if (cmd_rval == 1) { rval = 1; break; }
         cmd_idx++;
     }
-    const int cmd_rval = exec_cmd(cmds[cmd_idx].argv, prefix);
-    if (cmd_rval == 0) { forks++;}
-    if (cmd_rval == 1) { rval = 1; }
+
+    if (rval != 1) {
+        const int cmd_rval = exec_cmd(&cmds[cmd_idx], prefix, -1, -1);
+        if (cmds[cmd_idx].back_read != -1) {
+            close(cmds[cmd_idx].back_read);
+        }
+        if (cmd_rval == 0) { forks++;}
+        if (cmd_rval == 1) { rval = 1; }
+    }
     while (forks--) wait(NULL);
 
     return rval;

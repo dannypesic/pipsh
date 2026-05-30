@@ -4,6 +4,7 @@
 
 typedef struct Command {
     char ** argv;
+    int back_read;
     struct Command * next;
 } Command;
 

@@ -52,6 +52,7 @@ char* parse(Command* cmds, char ** argv_pool) {
                     }
                     cmds[cmd_count] = (Command){
                         .argv = &argv_pool[cmd_idx],
+                        .back_read = -1,
                         .next = NULL
                     };
                     if (cmd_count != 0) {
@@ -87,6 +88,7 @@ char* parse(Command* cmds, char ** argv_pool) {
     argv_pool[argnum] = NULL;
     cmds[cmd_count] = (Command){
         .argv = &argv_pool[cmd_idx],
+        .back_read = -1,
         .next = NULL
     };
     if (cmd_count != 0) {
