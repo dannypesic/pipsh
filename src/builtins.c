@@ -25,7 +25,7 @@ int exec_cmd(Command * cmd, Prefix * prefix, int front_read, int front_write) {
     if (strcmp(argvec[0], "exit") == 0) {
         return 1;
     }
-    
+
 
     if (strcmp(argvec[0], "echo") == 0 && argvec[1][0] == '$') {
         const char* env_var = getenv(& argvec[1][1]);
